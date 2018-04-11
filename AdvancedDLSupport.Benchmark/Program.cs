@@ -18,7 +18,10 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using AdvancedDLSupport.Loaders;
@@ -56,64 +59,61 @@ namespace AdvancedDLSupport.Benchmark
             ulong iterationCount = 10000;
 
             // Managed, by ref
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using managed code, passing the matrix by reference.");
-            var managedByRef = RunIterations(RunManagedByRefIteration, iterationCount);
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions, passing the matrix by reference.");
+            var performanceResultsByRef = new[]
+            {
+                RunIterations("Managed", RunManagedByRefIteration, iterationCount),
+                RunIterations("DllImport", RunDllImportByRefIteration, iterationCount),
+                RunIterations("Delegates", RunADLByRefIteration, iterationCount),
+                RunIterations("Delegates (safeties off)", RunUnsafeADLByRefIteration, iterationCount),
+                RunIterations("calli", RunCalliByRefIteration, iterationCount)
+            };
 
-            Console.WriteLine($"Average result: {managedByRef}ms per iteration.\n");
+            PresentResults(performanceResultsByRef);
+
+            Console.WriteLine();
 
             // Managed, by value
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using managed code, passing the matrix by value.");
-            var managedByValue = RunIterations(RunManagedByValueIteration, iterationCount);
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions, passing the matrix by value.");
 
-            Console.WriteLine($"Average result: {managedByValue}ms per iteration.\n");
+            var performanceResultsByValue = new[]
+            {
+                RunIterations("Managed", RunManagedByValueIteration, iterationCount),
+                RunIterations("DllImport", RunDllImportByValueIteration, iterationCount),
+                RunIterations("Delegates", RunADLByValueIteration, iterationCount),
+                RunIterations("Delegates (safeties off)", RunUnsafeADLByValueIteration, iterationCount),
+                RunIterations("calli", RunCalliByValueIteration, iterationCount)
+            };
 
-            // DllImport, by ref
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using DllImport, passing the matrix by reference.");
-            var withDllImportByRef = RunIterations(RunDllImportByRefIteration, iterationCount);
+            PresentResults(performanceResultsByValue);
+        }
 
-            Console.WriteLine($"Average result: {withDllImportByRef}ms per iteration.\n");
+        private static void PresentResults([NotNull] IReadOnlyCollection<(string Name, decimal Time)> results)
+        {
+            var orderedColours = new[] { ConsoleColor.Green, ConsoleColor.Yellow, ConsoleColor.Red };
 
-            // DllImport, by value
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using DllImport, passing the matrix by value.");
-            var withDllImportByValue = RunIterations(RunDllImportByValueIteration, iterationCount);
+            var longestNameLength = results.OrderByDescending(r => r.Name.Length).First().Name.Length;
+            var longestTimeLength = results.OrderByDescending(r => r.Time.ToString(CultureInfo.CurrentCulture).Length).First().Time.ToString(CultureInfo.CurrentCulture).Length;
 
-            Console.WriteLine($"Average result: {withDllImportByValue}ms per iteration.\n");
+            var orderedResults = results.OrderBy(r => r.Time).ToList();
 
-            // Delegates, by ref
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using delegates, passing the matrix by reference.");
-            var withADLByRef = RunIterations(RunADLByRefIteration, iterationCount);
+            var worstResult = orderedResults.Last();
+            var formattedResults = orderedResults.Select
+            (
+                r =>
+                    $"{r.Name.PadRight(longestNameLength, ' ')} : " +
+                    $"{r.Time.ToString(CultureInfo.CurrentCulture).PadRight(longestTimeLength, ' ')}ms " +
+                    $"({(worstResult.Time / r.Time) - 1:P0} improvement over worst time)"
+            )
+            .ToList();
 
-            Console.WriteLine($"Average result: {withADLByRef}ms per iteration.\n");
-
-            // Delegates, by value
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using delegates, passing the matrix by value.");
-            var withADLByValue = RunIterations(RunADLByValueIteration, iterationCount);
-
-            Console.WriteLine($"Average result: {withADLByValue}ms per iteration.\n");
-
-            // Delegates (safeties off), by ref
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using delegates (safeties off), passing the matrix by reference.");
-            var withUnsafeADLByRef = RunIterations(RunUnsafeADLByRefIteration, iterationCount);
-
-            Console.WriteLine($"Average result: {withUnsafeADLByRef}ms per iteration.\n");
-
-            // Delegates (safeties off), by value
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using delegates (safeties off), passing the matrix by value.");
-            var withUnsafeADLByValue = RunIterations(RunUnsafeADLByValueIteration, iterationCount);
-
-            Console.WriteLine($"Average result: {withUnsafeADLByValue}ms per iteration.\n");
-
-            // calli, by ref
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using calli, passing the matrix by reference.");
-            var withCalliByRef = RunIterations(RunCalliByRefIteration, iterationCount);
-
-            Console.WriteLine($"Average result: {withCalliByRef}ms per iteration.\n");
-
-            // calli, by value
-            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using calli, passing the matrix by value.");
-            var withCalliByValue = RunIterations(RunCalliByValueIteration, iterationCount);
-
-            Console.WriteLine($"Average result: {withCalliByValue}ms per iteration.\n");
+            for (var i = 0; i < formattedResults.Count; ++i)
+            {
+                Console.ForegroundColor = orderedColours[i < 3 ? i : 2];
+                Console.WriteLine(formattedResults[i]);
+            }
         }
 
         private static void RunDllImportByRefIteration()
@@ -176,7 +176,7 @@ namespace AdvancedDLSupport.Benchmark
             Matrix2.Invert(matrixCopy);
         }
 
-        private static decimal RunIterations(Action action, ulong count)
+        private static (string Name, decimal Time) RunIterations(string name, Action action, ulong count)
         {
             var sw = new Stopwatch();
 
@@ -198,7 +198,7 @@ namespace AdvancedDLSupport.Benchmark
             var elapsed = sw.Elapsed.TotalMilliseconds;
             var perIteration = elapsed / count;
 
-            return new decimal(perIteration);
+            return (name, new decimal(perIteration));
         }
 
         [NotNull]
