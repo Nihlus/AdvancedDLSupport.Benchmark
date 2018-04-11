@@ -55,6 +55,18 @@ namespace AdvancedDLSupport.Benchmark
 
             ulong iterationCount = 10000;
 
+            // Managed, by ref
+            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using managed code, passing the matrix by reference.");
+            var managedByRef = RunIterations(RunManagedByRefIteration, iterationCount);
+
+            Console.WriteLine($"Average result: {managedByRef}ms per iteration.\n");
+
+            // Managed, by value
+            Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using managed code, passing the matrix by value.");
+            var managedByValue = RunIterations(RunManagedByValueIteration, iterationCount);
+
+            Console.WriteLine($"Average result: {managedByValue}ms per iteration.\n");
+
             // DllImport, by ref
             Console.WriteLine($"Running {iterationCount} iterations of Matrix2 inversions using DllImport, passing the matrix by reference.");
             var withDllImportByRef = RunIterations(RunDllImportByRefIteration, iterationCount);
@@ -150,6 +162,18 @@ namespace AdvancedDLSupport.Benchmark
         {
             var matrixCopy = Source;
             _calliImplementation.InvertMatrixByValue(matrixCopy);
+        }
+
+        private static void RunManagedByRefIteration()
+        {
+            var matrixCopy = Source;
+            Matrix2.Invert(ref matrixCopy);
+        }
+
+        private static void RunManagedByValueIteration()
+        {
+            var matrixCopy = Source;
+            Matrix2.Invert(matrixCopy);
         }
 
         private static decimal RunIterations(Action action, ulong count)

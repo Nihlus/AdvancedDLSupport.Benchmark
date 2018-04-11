@@ -37,6 +37,43 @@ namespace AdvancedDLSupport.Benchmark
         public Vector2 Row1;
 
         /// <summary>
+        /// Inverts a given by-reference <see cref="Matrix2"/>.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        public static void Invert(ref Matrix2 matrix)
+        {
+            // Calculate determinant over one
+            float det = 1 / ((matrix.Row0.X * matrix.Row1.Y) - (matrix.Row0.Y * matrix.Row1.X));
+
+            float tmpd = matrix.Row1.Y;
+
+            // Swap d and a
+            matrix.Row1.Y = matrix.Row0.X;
+            matrix.Row0.X = tmpd;
+
+            // Negate b and c
+            matrix.Row0.Y = -matrix.Row0.Y;
+            matrix.Row1.X = -matrix.Row1.X;
+
+            // And multiply by the determinant modifier
+            matrix.Row0.X *= det;
+            matrix.Row0.Y *= det;
+            matrix.Row1.X *= det;
+            matrix.Row1.Y *= det;
+        }
+
+        /// <summary>
+        /// Inverts a given by-value <see cref="Matrix2"/>.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <returns>The inverted matrix.</returns>
+        public static Matrix2 Invert(Matrix2 matrix)
+        {
+            Invert(ref matrix);
+            return matrix;
+        }
+
+        /// <summary>
         /// Determines componentwise equality for two matrices.
         /// </summary>
         /// <param name="a">The first matrix.</param>
