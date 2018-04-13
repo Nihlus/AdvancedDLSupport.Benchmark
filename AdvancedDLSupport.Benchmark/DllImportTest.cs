@@ -30,7 +30,7 @@ namespace AdvancedDLSupport.Benchmark
         /// Inverts a given by-reference <see cref="Matrix2"/>.
         /// </summary>
         /// <param name="matrix">The matrix.</param>
-        [DllImport("test")]
+        [DllImport(Program.LibraryName)]
         public static extern void InvertMatrixByPtr(ref Matrix2 matrix);
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace AdvancedDLSupport.Benchmark
         /// </summary>
         /// <param name="matrix">The matrix.</param>
         /// <returns>The inverted matrix.</returns>
-        [DllImport("test")]
+        [DllImport(Program.LibraryName)]
         public static extern Matrix2 InvertMatrixByValue(Matrix2 matrix);
     }
 }
