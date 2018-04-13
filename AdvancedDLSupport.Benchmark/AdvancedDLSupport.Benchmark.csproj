@@ -28,7 +28,7 @@
     </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AdvancedDLSupport" Version="1.1.0" />
+    <PackageReference Include="AdvancedDLSupport" Version="1.2.0" />
     <PackageReference Include="StrictEmit" Version="2.2.0" />
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004" PrivateAssets="all" />

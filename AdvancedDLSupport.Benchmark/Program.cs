@@ -41,7 +41,7 @@ namespace AdvancedDLSupport.Benchmark
 
         private static ITest _adlLibrary;
         private static ITest _adlLibraryWithoutDisposeChecks;
-        private static ITest _calliImplementation;
+        private static ITest _adlLibraryWithCalli;
 
         /// <summary>
         /// The main entry point.
@@ -50,8 +50,7 @@ namespace AdvancedDLSupport.Benchmark
         {
             _adlLibrary = NativeLibraryBuilder.Default.ActivateInterface<ITest>("test");
             _adlLibraryWithoutDisposeChecks = new NativeLibraryBuilder().ActivateInterface<ITest>("test");
-
-            _calliImplementation = GetCalliImplementation();
+            _adlLibraryWithCalli = new NativeLibraryBuilder(ImplementationOptions.UseIndirectCalls).ActivateInterface<ITest>("test");
 
             var inverted = _adlLibrary.InvertMatrixByValue(Source);
             Debug.Assert(inverted == Result, "inverted == Result");
@@ -155,13 +154,13 @@ namespace AdvancedDLSupport.Benchmark
         private static void RunCalliByRefIteration()
         {
             var matrixCopy = Source;
-            _calliImplementation.InvertMatrixByPtr(ref matrixCopy);
+            _adlLibraryWithCalli.InvertMatrixByPtr(ref matrixCopy);
         }
 
         private static void RunCalliByValueIteration()
         {
             var matrixCopy = Source;
-            _calliImplementation.InvertMatrixByValue(matrixCopy);
+            _adlLibraryWithCalli.InvertMatrixByValue(matrixCopy);
         }
 
         private static void RunManagedByRefIteration()
@@ -199,58 +198,6 @@ namespace AdvancedDLSupport.Benchmark
             var perIteration = elapsed / count;
 
             return (name, new decimal(perIteration));
-        }
-
-        [NotNull]
-        private static ITest GetCalliImplementation()
-        {
-            var libraryPtr = dl.dlopen("./libtest.so", SymbolFlag.RTLD_DEFAULT);
-            var byRefPtr = dl.dlsym(libraryPtr, nameof(ITest.InvertMatrixByPtr));
-            var byValPtr = dl.dlsym(libraryPtr, nameof(ITest.InvertMatrixByValue));
-
-            var dynamicAssembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.Run);
-            var dynamicModule = dynamicAssembly.DefineDynamicModule("DynamicModule");
-
-            var dynamicType = dynamicModule.DefineType
-            (
-                "CalliImplementation",
-                TypeAttributes.Class | TypeAttributes.Public,
-                typeof(object),
-                new[] { typeof(ITest) }
-            );
-
-            var byRefMethod = dynamicType.DefineMethod
-            (
-                nameof(ITest.InvertMatrixByPtr),
-                Public | Virtual | Final | NewSlot,
-                typeof(void),
-                new[] { typeof(Matrix2).MakeByRefType() }
-            );
-
-            var byRefIL = byRefMethod.GetILGenerator();
-
-            byRefIL.EmitLoadArgument(1);
-            byRefIL.EmitConstantLong(byRefPtr.ToInt64());
-            byRefIL.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), new[] { typeof(Matrix2).MakeByRefType() }, null);
-            byRefIL.EmitReturn();
-
-            var byValMethod = dynamicType.DefineMethod
-            (
-                nameof(ITest.InvertMatrixByValue),
-                Public | Virtual | Final | NewSlot,
-                typeof(Matrix2),
-                new[] { typeof(Matrix2) }
-            );
-
-            var byValIL = byValMethod.GetILGenerator();
-
-            byValIL.EmitLoadArgument(1);
-            byValIL.EmitConstantLong(byValPtr.ToInt64());
-            byValIL.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(Matrix2), new[] { typeof(Matrix2) }, null);
-            byValIL.EmitReturn();
-
-            var type = dynamicType.CreateTypeInfo();
-            return (ITest)Activator.CreateInstance(type);
         }
     }
 }
