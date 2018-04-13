@@ -24,7 +24,9 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using AdvancedDLSupport.Benchmark.Benchmarks;
 using AdvancedDLSupport.Loaders;
+using BenchmarkDotNet.Running;
 using JetBrains.Annotations;
 using StrictEmit;
 using static System.Reflection.MethodAttributes;
@@ -52,6 +54,11 @@ namespace AdvancedDLSupport.Benchmark
         /// The main entry point.
         /// </summary>
         internal static void Main()
+        {
+            var summary = BenchmarkRunner.Run<InteropMethods>();
+        }
+
+        private static void RunBenchmark()
         {
             _adlLibrary = NativeLibraryBuilder.Default.ActivateInterface<ITest>(LibraryName);
             _adlLibraryWithoutDisposeChecks = new NativeLibraryBuilder().ActivateInterface<ITest>(LibraryName);
