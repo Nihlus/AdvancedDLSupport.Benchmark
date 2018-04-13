@@ -36,6 +36,9 @@ namespace AdvancedDLSupport.Benchmark
     /// </summary>
     internal static class Program
     {
+        /// <summary>
+        /// The name of the native library.
+        /// </summary>
         internal const string LibraryName = "TestLibrary";
 
         private static readonly Matrix2 Source = new Matrix2 { Row0 = { X = 4, Y = 7 }, Row1 = { X = 2, Y = 6 } };
