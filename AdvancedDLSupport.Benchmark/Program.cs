@@ -99,7 +99,12 @@ namespace AdvancedDLSupport.Benchmark
             var orderedColours = new[] { ConsoleColor.Green, ConsoleColor.Yellow, ConsoleColor.Red };
 
             var longestNameLength = results.OrderByDescending(r => r.Name.Length).First().Name.Length;
-            var longestTimeLength = results.OrderByDescending(r => r.Time.ToString(CultureInfo.CurrentCulture).Length).First().Time.ToString(CultureInfo.CurrentCulture).Length;
+            var longestTimeLength = results.OrderByDescending
+            (
+                r =>
+                    r.Time.ToString(CultureInfo.CurrentCulture).Length
+            )
+            .First().Time.ToString(CultureInfo.CurrentCulture).Length;
 
             var orderedResults = results.OrderBy(r => r.Time).ToList();
 
