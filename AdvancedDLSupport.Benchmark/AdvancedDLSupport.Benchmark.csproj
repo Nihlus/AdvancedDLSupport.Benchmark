@@ -35,7 +35,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" PrivateAssets="all" />
     <PackageReference Include="JetBrainsAnnotations.Fody" Version="2.2.0" PrivateAssets="all" />
   </ItemGroup>
-  <Target Name="CompileNative" AfterTargets="AfterBuild">
-    <Exec Command="clang -shared -fPIC -Wall test.c -o $(OutDir)libtest.so" />
-  </Target>
+  <!-- Common CMake build steps -->
+  <Import Project="targets\CMake-Unix.targets" Condition="'$(OS)' == 'Unix'" />
+  <Import Project="targets\CMake-Win.targets" Condition="'$(OS)' == 'Windows_NT'" />
 </Project>

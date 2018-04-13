@@ -36,6 +36,8 @@ namespace AdvancedDLSupport.Benchmark
     /// </summary>
     internal static class Program
     {
+        private const string LibraryName = "TestLibrary";
+
         private static readonly Matrix2 Source = new Matrix2 { Row0 = { X = 4, Y = 7 }, Row1 = { X = 2, Y = 6 } };
         private static readonly Matrix2 Result = new Matrix2 { Row0 = { X = 0.6f, Y = -0.7f }, Row1 = { X = -0.2f, Y = 0.4f } };
 
@@ -48,9 +50,9 @@ namespace AdvancedDLSupport.Benchmark
         /// </summary>
         internal static void Main()
         {
-            _adlLibrary = NativeLibraryBuilder.Default.ActivateInterface<ITest>("test");
-            _adlLibraryWithoutDisposeChecks = new NativeLibraryBuilder().ActivateInterface<ITest>("test");
-            _adlLibraryWithCalli = new NativeLibraryBuilder(ImplementationOptions.UseIndirectCalls).ActivateInterface<ITest>("test");
+            _adlLibrary = NativeLibraryBuilder.Default.ActivateInterface<ITest>(LibraryName);
+            _adlLibraryWithoutDisposeChecks = new NativeLibraryBuilder().ActivateInterface<ITest>(LibraryName);
+            _adlLibraryWithCalli = new NativeLibraryBuilder(ImplementationOptions.UseIndirectCalls).ActivateInterface<ITest>(LibraryName);
 
             var inverted = _adlLibrary.InvertMatrixByValue(Source);
             Debug.Assert(inverted == Result, "inverted == Result");
