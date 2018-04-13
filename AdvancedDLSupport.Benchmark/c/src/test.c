@@ -1,3 +1,5 @@
+#include "comp.h"
+
 typedef struct Vector2
 {
     float X;
@@ -10,7 +12,7 @@ typedef struct Matrix2
     Vector2 Row1;
 } Matrix2;
 
-void InvertMatrixByPtr(Matrix2* matrix)
+__declspec(dllexport) void InvertMatrixByPtr(Matrix2* matrix)
 {
     // Calculate determinant over one
     float det = 1 / ((matrix->Row0.X * matrix->Row1.Y) - (matrix->Row0.Y * matrix->Row1.X));
@@ -32,7 +34,7 @@ void InvertMatrixByPtr(Matrix2* matrix)
     matrix->Row1.Y *= det;
 }
 
-Matrix2 InvertMatrixByValue(Matrix2 matrix)
+__declspec(dllexport) Matrix2 InvertMatrixByValue(Matrix2 matrix)
 {
     InvertMatrixByPtr(&matrix);
     return matrix;
