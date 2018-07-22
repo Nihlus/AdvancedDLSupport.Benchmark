@@ -1,5 +1,6 @@
 AdvancedDLSupport.Benchmark
 ===========================
+[![Join the chat at https://discord.gg/fDy5Vhb](https://img.shields.io/badge/chat-on%20discord-7289DA.svg)](https://discord.gg/fDy5Vhb)
 
 This repo contains a small test application for benchmarking different ways of native interop. Currently, it tests 
 traditional `DllImport` statements, delegate-based techniques, and the `calli` opcode. Each permutation is tested 
